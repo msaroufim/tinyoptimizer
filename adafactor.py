@@ -258,13 +258,13 @@ def train_model(optimizer_name='adam', convert_to_bf16=False):
     
     # Choose optimizer
     if optimizer_name == 'adafactor':
-        optimizer = Adafactor(model_copy.parameters(), lr=None, scale_parameter=True, relative_step=True, warmup_init=True, clip_threshold=sys.maxsize)
+        optimizer = Adafactor(model_copy.parameters(), lr=None, scale_parameter=True, relative_step=True, warmup_init=True, clip_threshold=sys.maxsize, decay_rate=0)
     elif optimizer_name == 'adam':
         optimizer = optim.Adam(model_copy.parameters(), lr=1e-3)
     elif optimizer_name == 'sgd':
         optimizer = optim.SGD(model_copy.parameters(), lr=1e-3)
-    elif optimizer_name == "adamw":
-        optimizer = optim.AdamW(model_copy.parameters(), lr=1e-3)
+    # elif optimizer_name == "adamw":
+    #     optimizer = optim.AdamW(model_copy.parameters(), lr=1e-3)
     else:
         raise ValueError('Unknown optimizer name')
     
@@ -290,7 +290,7 @@ def train_model(optimizer_name='adam', convert_to_bf16=False):
 
 loss_history_adafactor = train_model(optimizer_name='adafactor', convert_to_bf16=True)
 loss_history_adam = train_model(optimizer_name='adam', convert_to_bf16=True)
-loss_history_adamw = train_model(optimizer_name='adamw', convert_to_bf16=True)
+# loss_history_adamw = train_model(optimizer_name='adamw', convert_to_bf16=True)
 loss_history_sgd = train_model(optimizer_name='sgd', convert_to_bf16=True)
 
 
@@ -300,7 +300,7 @@ import matplotlib.pyplot as plt
 plt.plot(loss_history_adafactor, label='Adafactor')
 plt.plot(loss_history_adam, label='Adam')
 plt.plot(loss_history_sgd, label='SGD')
-plt.plot(loss_history_adamw, label='AdamW')
+# plt.plot(loss_history_adamw, label='AdamW')
 plt.xlabel('Epoch')
 plt.ylabel('Loss')
 plt.title('Loss History')
