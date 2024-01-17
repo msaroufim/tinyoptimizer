@@ -3,6 +3,16 @@ import math
 import torch
 import torch.optim as optim
 
+
+def convert_optimizer_state_to_dtype(optimizer, dtype=torch.bfloat16):
+    """ Convert all optimizer state tensors to bfloat16. """
+    for group in optimizer.param_groups:
+        for p in group['params']:
+            state = optimizer.state[p]
+            for k, v in state.items():
+                if torch.is_tensor(v):
+                    state[k] = v.to(dtype)
+
 class Adafactor(optim.Optimizer):
     """
     Implements Adafactor algorithm.
@@ -53,6 +63,9 @@ class Adafactor(optim.Optimizer):
 
 
     def _get_lr(self, param_group, param_state):
+        """
+        Adafactor can compute its own learning rate based on the step size
+        """
         rel_step_sz = param_group["lr"]
         if param_group["relative_step"]:
             min_step = (
@@ -65,14 +78,23 @@ class Adafactor(optim.Optimizer):
         return param_scale * rel_step_sz
 
     def _get_options(self, param_group, param_shape):
+        """
+        Decide whether to use the first moment or not based on the shape of the
+        """
         factored = len(param_shape) >= 2
         use_first_moment = param_group["beta1"] is not None
         return factored, use_first_moment
 
     def _rms(self, tensor):
+        """
+        Root mean square
+        """
         return tensor.norm(2) / (tensor.numel() ** 0.5)
 
     def _approx_sq_grad(self, exp_avg_sq_row, exp_avg_sq_col):
+        """
+        Approximation of exponential moving average of square of gradient
+        """
         r_factor = (
             (exp_avg_sq_row / exp_avg_sq_row.mean(dim=-1, keepdim=True))
             .rsqrt_()
@@ -109,7 +131,6 @@ class Adafactor(optim.Optimizer):
                 # State Initialization
                 if len(state) == 0:
                     state["step"] = 0
-
                     if use_first_moment:
                         # Exponential moving average of gradient values
                         state["exp_avg"] = torch.zeros_like(grad)
@@ -204,7 +225,7 @@ class SimpleModel(nn.Module):
     def forward(self, x):
         return self.linear2(self.non_linear(self.linear(x)))
 
-model = SimpleModel().cuda()
+model = SimpleModel().cuda().to(torch.bfloat16)
 criterion = nn.MSELoss()
 
 # Function to estimate the size of an object in bytes
@@ -226,7 +247,7 @@ import sys
     # print(f'Adam state size: {sizeof_fmt(adam_size)}')
 
 
-def train_model(optimizer_name='adam'):
+def train_model(optimizer_name='adam', convert_to_bf16=False):
     # Make seed deterministic
     torch.manual_seed(0)
     np.random.seed(0)
@@ -237,13 +258,19 @@ def train_model(optimizer_name='adam'):
     
     # Choose optimizer
     if optimizer_name == 'adafactor':
-        optimizer = Adafactor(model_copy.parameters(), lr=None, scale_parameter=True, relative_step=True, warmup_init=True)
+        optimizer = Adafactor(model_copy.parameters(), lr=None, scale_parameter=True, relative_step=True, warmup_init=True, clip_threshold=sys.maxsize)
     elif optimizer_name == 'adam':
         optimizer = optim.Adam(model_copy.parameters(), lr=1e-3)
     elif optimizer_name == 'sgd':
         optimizer = optim.SGD(model_copy.parameters(), lr=1e-3)
+    elif optimizer_name == "adamw":
+        optimizer = optim.AdamW(model_copy.parameters(), lr=1e-3)
     else:
         raise ValueError('Unknown optimizer name')
+    
+    # Convert model to bf16
+    if convert_to_bf16:
+        convert_optimizer_state_to_dtype(optimizer, dtype=torch)
     epochs = 10000
     loss_history = []
 
@@ -261,9 +288,11 @@ def train_model(optimizer_name='adam'):
     return loss_history
 
 
-loss_history_adafactor = train_model(optimizer_name='adafactor')
-loss_history_adam = train_model(optimizer_name='adam')
-loss_history_sgd = train_model(optimizer_name='sgd')
+loss_history_adafactor = train_model(optimizer_name='adafactor', convert_to_bf16=True)
+loss_history_adam = train_model(optimizer_name='adam', convert_to_bf16=True)
+loss_history_adamw = train_model(optimizer_name='adamw', convert_to_bf16=True)
+loss_history_sgd = train_model(optimizer_name='sgd', convert_to_bf16=True)
+
 
 import matplotlib.pyplot as plt
 
@@ -271,6 +300,7 @@ import matplotlib.pyplot as plt
 plt.plot(loss_history_adafactor, label='Adafactor')
 plt.plot(loss_history_adam, label='Adam')
 plt.plot(loss_history_sgd, label='SGD')
+plt.plot(loss_history_adamw, label='AdamW')
 plt.xlabel('Epoch')
 plt.ylabel('Loss')
 plt.title('Loss History')
