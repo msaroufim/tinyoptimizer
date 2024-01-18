@@ -325,9 +325,10 @@ def train_model(optimizer_name='adam', convert_to_bf16=False):
     # Convert model to bf16
     if convert_to_bf16:
         convert_optimizer_state_to_dtype(optimizer, dtype=torch)
-    epochs = 10000
+    epochs = 1000
     loss_history = []
 
+    start_record_memory_history()
     for epoch in range(epochs):
         optimizer.zero_grad()
         outputs = model_copy(X)
@@ -336,32 +337,32 @@ def train_model(optimizer_name='adam', convert_to_bf16=False):
         optimizer.step()
 
         loss_history.append(loss.item())
-        if epoch % 10 == 0:
-            print(f'Epoch [{epoch+1}/{epochs}], Loss: {loss.item():.4f}')
-
-    return loss_history
-
-def basic_plot():
-    start_record_memory_history()
-
-    loss_history_adafactor = train_model(optimizer_name='adafactor', convert_to_bf16=False)
-    loss_history_adam = train_model(optimizer_name='adam', convert_to_bf16=False)
-    # loss_history_adamw = train_model(optimizer_name='adamw', convert_to_bf16=False)
-    loss_history_sgd = train_model(optimizer_name='sgd', convert_to_bf16=False)
+        # if epoch % 10 == 0:
+        #     print(f'Epoch [{epoch+1}/{epochs}], Loss: {loss.item():.4f}')
     export_memory_snapshot()
     stop_record_memory_history()
 
+    
+    return loss_history
+
+def basic_plot():
+
+    loss_history_adafactor = train_model(optimizer_name='adafactor', convert_to_bf16=False)
+    # loss_history_adam = train_model(optimizer_name='adam', convert_to_bf16=False)
+    # loss_history_adamw = train_model(optimizer_name='adamw', convert_to_bf16=False)
+    # loss_history_sgd = train_model(optimizer_name='sgd', convert_to_bf16=False)
+
 
     # Plotting
-    plt.plot(loss_history_adafactor, label='Adafactor')
-    plt.plot(loss_history_adam, label='Adam')
-    plt.plot(loss_history_sgd, label='SGD')
-    # plt.plot(loss_history_adamw, label='AdamW')
-    plt.xlabel('Epoch')
-    plt.ylabel('Loss')
-    plt.title('Loss History')
-    plt.legend()
-    plt.show()
+    # plt.plot(loss_history_adafactor, label='Adafactor')
+    # # plt.plot(loss_history_adam, label='Adam')
+    # # plt.plot(loss_history_sgd, label='SGD')
+    # # plt.plot(loss_history_adamw, label='AdamW')
+    # plt.xlabel('Epoch')
+    # plt.ylabel('Loss')
+    # plt.title('Loss History')
+    # plt.legend()
+    # plt.show()
 
 def grid_search():
     import itertools
