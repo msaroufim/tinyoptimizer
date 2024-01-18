@@ -91,7 +91,6 @@ def train_model(optimizer_class, optimizer_params, epochs=1):
     model.train()
 
     loss_values = []
-    start_record_memory_history()
     dataloader = DataLoader(tokenized_dataset, batch_size=4, shuffle=True, collate_fn=data_collator)
     for epoch in range(epochs):
         for batch in tqdm(dataloader):
@@ -103,26 +102,29 @@ def train_model(optimizer_class, optimizer_params, epochs=1):
             optimizer.step()
             loss_values.append(loss.item())
             print(loss.item())
-    export_memory_snapshot()
-    stop_record_memory_history()
     return loss_values
 
 # Training parameters
 adam_params = {'lr': 1e-3}
+
+start_record_memory_history()
 # adafactor_params = {'lr': 1e-3}  # Adafactor can typically use a higher learning rate
 
 # Train with Adam optimizer
 adam_loss = train_model(AdamW, adam_params)
 
 # Reset the model to its initial state
-model = GPT2LMHeadModel.from_pretrained(model_name).cuda()
+# model = GPT2LMHeadModel.from_pretrained(model_name).cuda()
 
 # Train with Adafactor optimizer
-adafactor_loss = train_model(Adafactor, {})
+# adafactor_loss = train_model(Adafactor, {})
+
+export_memory_snapshot()
+stop_record_memory_history()
 
 # Plot the loss curves
 def plot_loss_curves(adam_loss, adafactor_loss):
-    plt.plot(adam_loss, label='Adam')
+    # plt.plot(adam_loss, label='Adam')
     plt.plot(adafactor_loss, label='Adafactor')
     plt.title('Loss Curves')
     plt.xlabel('Training Steps')
