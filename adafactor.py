@@ -2,6 +2,8 @@
 import math
 import torch
 import torch.optim as optim
+import matplotlib.pyplot as plt
+
 
 
 def convert_optimizer_state_to_dtype(optimizer, dtype=torch.bfloat16):
@@ -264,9 +266,10 @@ def train_model(optimizer_name='adam', convert_to_bf16=False):
     elif optimizer_name == 'sgd':
         optimizer = optim.SGD(model_copy.parameters(), lr=1e-3)
     # elif optimizer_name == "adamw":
-    #     optimizer = optim.AdamW(model_copy.parameters(), lr=1e-3)
+#     optimizer = optim.AdamW(model_copy.parameters(), lr=1e-3)
     else:
-        raise ValueError('Unknown optimizer name')
+        optimizer = optimizer_name
+        # raise ValueError('Unknown optimizer name')
     
     # Convert model to bf16
     if convert_to_bf16:
@@ -287,22 +290,65 @@ def train_model(optimizer_name='adam', convert_to_bf16=False):
 
     return loss_history
 
+def basic_plot():
+    loss_history_adafactor = train_model(optimizer_name='adafactor', convert_to_bf16=True)
+    loss_history_adam = train_model(optimizer_name='adam', convert_to_bf16=True)
+    # loss_history_adamw = train_model(optimizer_name='adamw', convert_to_bf16=True)
+    loss_history_sgd = train_model(optimizer_name='sgd', convert_to_bf16=True)
 
-loss_history_adafactor = train_model(optimizer_name='adafactor', convert_to_bf16=True)
-loss_history_adam = train_model(optimizer_name='adam', convert_to_bf16=True)
-# loss_history_adamw = train_model(optimizer_name='adamw', convert_to_bf16=True)
-loss_history_sgd = train_model(optimizer_name='sgd', convert_to_bf16=True)
 
 
-import matplotlib.pyplot as plt
+    # Plotting
+    plt.plot(loss_history_adafactor, label='Adafactor')
+    plt.plot(loss_history_adam, label='Adam')
+    plt.plot(loss_history_sgd, label='SGD')
+    # plt.plot(loss_history_adamw, label='AdamW')
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss')
+    plt.title('Loss History')
+    plt.legend()
+    plt.show()
 
-# Plotting
-plt.plot(loss_history_adafactor, label='Adafactor')
-plt.plot(loss_history_adam, label='Adam')
-plt.plot(loss_history_sgd, label='SGD')
-# plt.plot(loss_history_adamw, label='AdamW')
-plt.xlabel('Epoch')
-plt.ylabel('Loss')
-plt.title('Loss History')
-plt.legend()
-plt.show()
+def grid_search():
+    import itertools
+
+
+
+    # Define the hyperparameter grid
+    # lr_options = [None, 1e-1, 1e-2, 1e-3]
+    eps_options = [(1e-30, 1e-3), (1e-10, 1e-3), (1e-8, 1e-2)]
+    clip_threshold_options = [1.0, 0.5, 2.0]
+    decay_rate_options = [-0.8, -0.5, -0.3]
+    beta1_options = [None, 0.9, 0.99]
+    weight_decay_options = [0.0, 0.01, 0.001]
+
+    # Perform grid search
+    results = {}
+    for eps, clip_threshold, decay_rate, beta1, weight_decay in itertools.product(
+        eps_options, clip_threshold_options, decay_rate_options, beta1_options, weight_decay_options
+    ):
+        optimizer = Adafactor(
+            params=model.parameters(),  # Replace with your model parameters
+            # lr=lr,
+            eps=eps,
+            clip_threshold=clip_threshold,
+            decay_rate=decay_rate,
+            beta1=beta1,
+            weight_decay=weight_decay
+        )
+        loss_history = train_model(optimizer)  # Set your epochs
+        results[(eps, clip_threshold, decay_rate, beta1, weight_decay)] = loss_history
+
+    # Plot the convergence of each hyperparameter set
+    for params, loss_history in results.items():
+        plt.plot(loss_history, label=params)
+
+    plt.xlabel('Epoch')
+    plt.ylabel('Validation Loss')
+    plt.title('Hyperparameter Tuning Results')
+    plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
+    plt.show()
+
+if __name__ == "__main__":
+    # basic_plot()
+    grid_search()
