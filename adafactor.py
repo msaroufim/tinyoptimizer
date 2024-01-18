@@ -260,7 +260,7 @@ def train_model(optimizer_name='adam', convert_to_bf16=False):
     
     # Choose optimizer
     if optimizer_name == 'adafactor':
-        optimizer = Adafactor(model_copy.parameters(), lr=None, scale_parameter=True, relative_step=True, warmup_init=True, clip_threshold=sys.maxsize, decay_rate=0)
+        optimizer = Adafactor(model_copy.parameters(),  scale_parameter=True, relative_step=True, warmup_init=False)
     elif optimizer_name == 'adam':
         optimizer = optim.Adam(model_copy.parameters(), lr=1e-3)
     elif optimizer_name == 'sgd':
@@ -350,5 +350,5 @@ def grid_search():
     plt.show()
 
 if __name__ == "__main__":
-    # basic_plot()
-    grid_search()
+    basic_plot()
+    # grid_search()
