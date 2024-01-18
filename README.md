@@ -13,3 +13,9 @@ The best recipe is this which beats ADAM `optimizer = Adafactor(model_copy.param
 ## Built in hf implementation on wikitext
 
 In this case it seems like the HF implementation converges very similarly. For this experiment we use 10% of wikitext 
+
+## Memory profiles
+
+Adafactor <img width="1727" alt="Screenshot 2024-01-18 at 10 26 41 AM" src="https://github.com/msaroufim/tinyoptimizer/assets/3282513/b7ba6f64-549e-4205-8ed0-c5a6b6a58c81">
+
+Adam <img width="1720" alt="Screenshot 2024-01-18 at 10 27 54 AM" src="https://github.com/msaroufim/tinyoptimizer/assets/3282513/f6882516-215f-4ec6-888c-4c72ef4fe0c6">
