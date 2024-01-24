@@ -11,6 +11,7 @@ cpu_adam = load(
     sources=['cpu_adam_impl.cpp'],
     
     # This includes SIMD library and also cpu adam dot h
+    # Make sure to git clone deepspeed in a top level directory
     extra_cflags=['-I/home/ubuntu/DeepSpeed/csrc/includes', '-std=c++17'], 
 
     verbose=True,
