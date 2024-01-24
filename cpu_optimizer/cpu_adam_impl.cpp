@@ -310,3 +310,10 @@ int destroy_adam_optimizer(int optimizer_id)
 
     return 0;
 }
+
+PYBIND11_MODULE(cpu_adam, m) {
+    m.def("create_adam_optimizer", &create_adam_optimizer, "A function that creates an Adam optimizer");
+    m.def("ds_adam_step", &ds_adam_step, "A function that performs a step of Adam optimization");
+    m.def("ds_adam_step_plus_copy", &ds_adam_step_plus_copy, "A function that performs a step of Adam optimization and copies the parameters");
+    m.def("destroy_adam_optimizer", &destroy_adam_optimizer, "A function that destroys an Adam optimizer");
+}

@@ -9,7 +9,9 @@ with open('cpu_adam_impl.cpp', 'r') as f:
 cpu_adam = load(
     name='cpu_adam',
     sources=['cpu_adam_impl.cpp'],
-    extra_cflags=['-I/home/ubuntu/tinyoptimizer/cpu_optimizer', '-std=c++2a'],
+    
+    # This includes SIMD library and also cpu adam dot h
+    extra_cflags=['-I/home/ubuntu/DeepSpeed/csrc/includes', '-std=c++17'], 
 
     verbose=True,
     build_directory='./tmp'
