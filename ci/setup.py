@@ -7,6 +7,7 @@ import os
 import subprocess
 import torch
 
+# TODO: Load inline all the cuda files here directly so they get built when the library is installed
 
 import os
 
