@@ -37,3 +37,10 @@ import square
 square
 dir(square)
 ```
+
+## Push to pypy
+
+```bash
+python setup.py bdist_wheel
+twine upload dist/*
+```
