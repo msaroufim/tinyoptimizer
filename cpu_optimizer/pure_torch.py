@@ -3,8 +3,12 @@
 # If the ground is smooth (low variance), you can confidently take bigger steps.
 
 # Python implementation
+
+import torch 
+
+
 class AdamOptimizer:
-    def __init__(self, parameters, lr=0.001, beta1=0.9, beta2=0.999, epsilon=1e-8):
+    def __init__(self, parameters, lr=0.001, beta1=0.9, beta2=0.999, epsilon=1e-8, weight_decay = 0.001):
         self.lr = lr
         self.beta1 = beta1
         self.beta2 = beta2
@@ -35,7 +39,7 @@ class AdamOptimizer:
 
 # PyTorch implementation
 class AdamOptimizer:
-    def __init__(self, params, lr=0.001, beta1=0.9, beta2=0.999, epsilon=1e-8):
+    def __init__(self, params, lr=0.001, beta1=0.9, beta2=0.999, epsilon=1e-8, weight_decay = 0.001):
         self.lr = lr
         self.beta1 = beta1
         self.beta2 = beta2
