@@ -27,4 +27,4 @@ with torch.no_grad():
 optimizer = ipex.optim._lamb.Lamb(model.parameters(), fused=True)
 ```
 
-This API does not unfortunately exist for ADAM thought but it could and we could also make this a public function
+This API does not unfortunately exist for ADAM thought but it could and we could also make this a public functioncd 
