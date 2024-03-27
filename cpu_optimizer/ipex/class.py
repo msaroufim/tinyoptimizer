@@ -11,12 +11,15 @@ from tqdm import tqdm
 
 from intel_extension_for_pytorch.optim._functional import adam_step, adamw_step
 
-# On small inputs
-# # (fresh) ubuntu@ip-172-31-48-15:~/tinyoptimizer/cpu_optimizer/ipex$ python class.py 
-# 100%|█████████████████████████████████████████████████████| 1000/1000 [00:02<00:00, 370.14it/s]
-# Fused Adam optimizer time: 2.7031 seconds
-# 100%|█████████████████████████████████████████████████████| 1000/1000 [00:03<00:00, 266.61it/s]
-# Existing Adam optimizer time: 3.7511 seconds
+# (base) ubuntu@ip-172-31-48-15:~/tinyoptimizer/cpu_optimizer/ipex$ conda activate fresh
+# (fresh) ubuntu@ip-172-31-48-15:~/tinyoptimizer/cpu_optimizer/ipex$ python class.py 
+# 100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 1000/1000 [00:03<00:00, 304.98it/s]
+# Fused Adam optimizer time using ipex_adam_step: 3.2803 seconds
+# 100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 1000/1000 [00:02<00:00, 362.54it/s]
+# Fused Adam optimizer time using ipex.optimize: 2.7588 seconds
+# 100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 1000/1000 [00:03<00:00, 288.74it/s]
+# Existing Adam optimizer time: 3.4637 seconds
+
 
 class FusedCPUAdam(torch.optim.Optimizer):
     def __init__(self, params, lr=0.001, betas=(0.9, 0.999), eps=1e-8,
