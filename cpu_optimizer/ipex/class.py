@@ -129,3 +129,22 @@ end_time = time.time()
 
 print(f"Existing Adam optimizer time: {end_time - start_time:.4f} seconds")
 
+# torch.compile benchmark
+optimizer = optim.Adam(model.parameters())
+
+@torch.compile()
+def loop():
+        optimizer.zero_grad()
+        output = model(input_data)
+        loss = output.sum()
+        loss.backward()
+        optimizer.step()
+
+loop()
+
+start_time = time.time()
+for _ in tqdm(range(1000)):
+    loop()
+end_time = time.time()
+
+print(f"torch.compile optimizer time: {end_time - start_time:.4f} seconds")
