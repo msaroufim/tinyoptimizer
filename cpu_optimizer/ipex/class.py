@@ -9,6 +9,7 @@ import time
 import intel_extension_for_pytorch as ipex
 from tqdm import tqdm
 
+
 from intel_extension_for_pytorch.optim._functional import adam_step, adamw_step
 
 # (base) ubuntu@ip-172-31-48-15:~/tinyoptimizer/cpu_optimizer/ipex$ conda activate fresh
@@ -62,6 +63,22 @@ class Net(nn.Module):
 model = Net()
 input_data = torch.randn(1000, 1000)
 
+
+## This monkey patches optimizer step
+from intel_extension_for_pytorch.optim._optimizer_utils import optimizer_fusion
+optimizer = optim.Adam(model.parameters())
+optimizer = optimizer_fusion(optim.Adam(model.parameters()), True, "cpu")
+
+start_time = time.time()
+for _ in tqdm(range(1000)):
+    optimizer.zero_grad()
+    output = model(input_data)
+    loss = output.sum()
+    loss.backward()
+    optimizer.step()
+end_time = time.time()
+
+print(f"Fused Adam optimizer time using optimizer_fusion: {end_time - start_time:.4f} seconds")
 
 # Benchmark the fused Adam optimizer
 optimizer = FusedCPUAdam(model.parameters(), fused=True)
